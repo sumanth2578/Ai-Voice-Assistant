@@ -29,6 +29,9 @@ model Task {
     transcript  String?
     summary     String?
     suggestions String?
+    tags        String?
+    audioData   String?
+    importance  Int?     @default(0)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 

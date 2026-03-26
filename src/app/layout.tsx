@@ -26,7 +26,7 @@ export default function RootLayout({
       <body>
         <TRPCReactProvider>
           <Navigation />
-          <main className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
+          <main className="max-w-7xl mx-auto">
             {children}
           </main>
         </TRPCReactProvider>

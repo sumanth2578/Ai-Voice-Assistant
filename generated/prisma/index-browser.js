@@ -134,6 +134,9 @@ exports.Prisma.TaskScalarFieldEnum = {
   transcript: 'transcript',
   summary: 'summary',
   suggestions: 'suggestions',
+  tags: 'tags',
+  audioData: 'audioData',
+  importance: 'importance',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

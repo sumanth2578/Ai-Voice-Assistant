@@ -7,8 +7,8 @@ export default async function DashboardPage() {
 
   return (
     <HydrateClient>
-      <main className="min-h-screen bg-[#f8fafc] text-slate-900">
-        <div className="container mx-auto px-4 py-16">
+      <main className="min-h-screen bg-[#f8fafc] text-slate-900 pt-20 px-4 md:px-8">
+        <div className="container mx-auto py-16">
           <header className="mb-12">
             <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center space-x-3">
               <span className="h-8 w-2 bg-blue-500 rounded-full" />

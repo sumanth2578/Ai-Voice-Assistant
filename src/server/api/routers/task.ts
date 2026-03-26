@@ -58,20 +58,30 @@ export const taskRouter = createTRPCRouter({
           messages: [
             {
               role: "system",
-              content: `You are an expert at extracting task assignments from conversational transcripts.
+              content: `You are an intelligent voice assistant for a task management system.
               
               Rules:
-              1. Return ONLY a JSON object with "task", "user", "priority", "dueDate", "summary", and "suggestions" keys.
-              2. The "task" should be a concise title.
-              3. The "user" should be the performer name.
-              4. "priority" MUST be "low", "medium", or "high". (Default: "medium")
-              5. "dueDate" should be an ISO date string if mentioned, otherwise null.
-              6. "summary" should be a friendly, one-sentence summary of the task.
-              7. "suggestions" should be a string containing 2-3 short, helpful next steps (comma separated).
+              1. Determine the user's intent: "CREATE", "UPDATE", or "QUERY".
+              2. Return ONLY a JSON object with the following keys:
+                 - "intent": ("CREATE", "UPDATE", or "QUERY")
+                 - "task": (Target task title or new task title)
+                 - "user": (Target user name if mentioned)
+                 - "status": ("todo", "in-progress", "done" if an update)
+                 - "priority": ("low", "medium", "high")
+                 - "dueDate": (ISO date string or null)
+                 - "tags": (Comma-separated relevant categories e.g. "design, urgency")
+                 - "importance": (Score 1-10)
+                 - "summary": (Friendly one-sentence summary of the action)
+                 - "suggestions": (Comma-separated next steps)
+                 - "query_answer": (Natural language answer ONLY if intent is "QUERY")
+              
+              Context:
               ${usersContext}${tasksContext}
               
-              Example: "Assign high priority logo task to Alice for next Friday" 
-              -> {"task": "Logo", "user": "Alice", "priority": "high", "dueDate": "2026-04-03", "summary": "Alice will design the new brand logo by next Friday.", "suggestions": "Review style guide, Contact Alice for kickoff, Check Pinterest for inspiration"}`
+              Example Intents:
+              - CREATE: "Assign a logo task to Alice" -> {"intent": "CREATE", "task": "Logo", "user": "Alice", ...}
+              - UPDATE: "Set the logo task to done" -> {"intent": "UPDATE", "task": "Logo", "status": "done", ...}
+              - QUERY: "What is Alice working on?" -> {"intent": "QUERY", "query_answer": "Alice is currently assigned to the 'Logo' task.", ...}`
             },
             {
               role: "user",
@@ -83,14 +93,7 @@ export const taskRouter = createTRPCRouter({
         });
 
         const content = completion.choices[0]?.message?.content;
-        const parsed = JSON.parse(content || '{"task": "", "user": "", "priority": "medium", "dueDate": null, "summary": "", "suggestions": ""}') as { 
-          task: string; 
-          user: string; 
-          priority: string; 
-          dueDate: string | null;
-          summary: string;
-          suggestions: string;
-        };
+        const parsed = JSON.parse(content || "{}");
 
         return {
           ...parsed,
@@ -122,6 +125,9 @@ export const taskRouter = createTRPCRouter({
         transcript: z.string().optional(),
         summary: z.string().optional(),
         suggestions: z.string().optional(),
+        tags: z.string().optional(),
+        audioData: z.string().optional(),
+        importance: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -136,6 +142,9 @@ export const taskRouter = createTRPCRouter({
         if (input.transcript) data.transcript = input.transcript;
         if (input.summary) data.summary = input.summary;
         if (input.suggestions) data.suggestions = input.suggestions;
+        if (input.tags) data.tags = input.tags;
+        if (input.audioData) data.audioData = input.audioData;
+        if (input.importance !== undefined) data.importance = input.importance;
 
         const task = await ctx.db.task.create({ data: data as any });
         console.log("Task created:", task.id);
@@ -145,6 +154,51 @@ export const taskRouter = createTRPCRouter({
         throw error;
       }
     }),
+
+  update: publicProcedure
+    .input(
+      z.object({
+        taskId: z.string().min(1),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.task.update({
+        where: { id: input.taskId },
+        data: {
+          status: input.status,
+          priority: input.priority,
+        },
+      });
+    }),
+
+  getDailyBrief: publicProcedure.query(async ({ ctx }) => {
+    const tasks = await ctx.db.task.findMany({
+      where: { status: { not: "done" } },
+      include: { assignedTo: true },
+    });
+
+    if (tasks.length === 0) return "You have no pending tasks. Enjoy your day!";
+
+    const taskList = tasks.map(t => `- ${t.title} (Assigned to ${t.assignedTo.name}, Priority: ${t.priority})`).join("\n");
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional executive assistant. Summarize the following tasks into a natural, encouraging 2-3 sentence morning briefing speaker script."
+        },
+        {
+          role: "user",
+          content: `My tasks for today:\n${taskList}`,
+        },
+      ],
+      model: "llama-3.3-70b-versatile",
+    });
+
+    return completion.choices[0]?.message?.content || "Ready for your workday!";
+  }),
 
   assign: publicProcedure
     .input(

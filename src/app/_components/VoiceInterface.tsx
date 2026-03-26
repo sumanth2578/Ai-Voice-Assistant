@@ -11,103 +11,222 @@ export const VoiceInterface = () => {
     status,
     statusMessage,
     pendingAssignment,
-    error,
+    aiResponse,
+    lastAudio,
     startListening,
     stopListening,
     confirmAssignment,
     cancelAssignment,
+    handleBriefing,
   } = useVoiceAssistant();
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  const playAudio = (base64: string) => {
+    const audio = new Audio(`data:audio/webm;base64,${base64}`);
+    void audio.play();
+  };
+
   if (!hasMounted) return null;
 
   return (
-    <div className="flex w-full max-w-xl flex-col items-center space-y-8 rounded-2xl bg-white p-8 shadow-sm border border-slate-100">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-black text-slate-900">Voice Assistant</h2>
-        <p className="text-sm text-slate-500 font-medium">Command your tasks with voice</p>
+    <div className="flex w-full max-w-2xl flex-col items-center space-y-12">
+      {/* Header & Briefing Section */}
+      <div className="w-full flex flex-col items-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="text-center space-y-3">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Voice Assistant</h2>
+          <p className="text-base text-slate-500 font-medium max-w-sm mx-auto">
+            Your workspace, controlled by your voice.
+          </p>
+        </div>
+        
+        <button
+          onClick={handleBriefing}
+          className={`flex items-center space-x-2 px-6 py-2.5 rounded-full text-sm font-bold border transition-all shadow-sm active:scale-95 ${
+            status === "answering" 
+              ? "bg-red-50 text-red-700 border-red-100 hover:bg-red-100" 
+              : "bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100"
+          }`}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {status === "answering" ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            )}
+          </svg>
+          <span>{status === "answering" ? "Stop Briefing" : "Get Daily Briefing"}</span>
+        </button>
       </div>
 
-      <div className="flex flex-col items-center space-y-4">
+      {/* Main Hub Container */}
+      <div className={`relative flex w-full flex-col items-center justify-center p-12 transition-all duration-500 ${
+        isListening ? "scale-105" : ""
+      }`}>
+        {isListening && (
+          <div className="absolute inset-0 flex items-center justify-center -z-10">
+            <div className="absolute h-48 w-48 animate-ping rounded-full bg-blue-400 opacity-20" />
+            <div className="absolute h-64 w-64 animate-ping rounded-full bg-blue-300 opacity-10" style={{ animationDelay: '0.5s' }} />
+          </div>
+        )}
+
         <button
           onClick={isListening ? stopListening : startListening}
-          className={`flex h-16 w-16 items-center justify-center rounded-full transition-all ${
+          className={`group relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-300 shadow-xl ${
             isListening 
-              ? "bg-red-500 text-white animate-pulse" 
-              : "bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"
+              ? "bg-red-500 text-white shadow-red-200" 
+              : "bg-white text-blue-600 hover:scale-110 active:scale-95 border-2 border-slate-100"
           }`}
         >
           {isListening ? (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H10a1 1 0 01-1-1v-4z" />
-            </svg>
+             <svg className="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+             </svg>
           ) : (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            <svg className="h-10 w-10 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
           )}
+          
+          <div className="absolute -bottom-12 w-64 text-center text-sm font-bold tracking-wide uppercase text-slate-400">
+            {statusMessage || (isListening ? "Listening..." : "Ready for Command")}
+          </div>
         </button>
-        <p className={`text-sm font-bold ${status === "error" ? "text-red-500" : "text-slate-600"}`}>
-          {statusMessage || (isListening ? "Listening..." : "Ready")}
-        </p>
       </div>
 
-      {(transcript || status === "confirming") && (
-        <div className="w-full space-y-6 rounded-xl bg-slate-50 p-6 border border-slate-100 italic">
-          {transcript && (
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Audio Transcription</p>
-              <p className="text-sm text-slate-700 italic">"{transcript}"</p>
+      {/* Unified Interaction Panel */}
+      {(transcript || status === "confirming" || status === "answering") && (
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in zoom-in-95 duration-500">
+          
+          {/* AI Answer View (for Queries & Briefings) */}
+          {status === "answering" && aiResponse && (
+            <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-indigo-600 p-6 sm:p-10 shadow-2xl text-white">
+               <div className="absolute top-0 right-0 h-48 w-48 sm:h-64 sm:w-64 -mr-24 -mt-24 sm:-mr-32 sm:-mt-32 rounded-full bg-white opacity-10 blur-3xl animate-pulse" />
+               <div className="relative z-10 space-y-3 sm:space-y-4">
+                  <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Assistant Response</span>
+                  <p className="text-xl sm:text-2xl font-bold leading-relaxed">
+                    {aiResponse.query_answer}
+                  </p>
+               </div>
             </div>
           )}
 
-          {status === "confirming" && pendingAssignment && (
-            <div className="space-y-4 not-italic">
-              <div className="pt-4 border-t border-slate-200">
-                <h3 className="text-xs font-bold text-blue-600 uppercase mb-3">Proposed Task</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Task Title</label>
-                    <p className="text-sm font-bold text-slate-800">{pendingAssignment.taskTitle}</p>
+          {/* Creation/Confirmation Card */}
+          {(transcript || status === "confirming") && status !== "answering" && (
+            <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100">
+               <div className="absolute top-0 right-0 h-32 w-32 -mr-16 -mt-16 rounded-full bg-blue-50 opacity-40 blur-3xl animate-pulse" />
+
+               {transcript && (
+                <div className="relative z-10 space-y-2 sm:space-y-4 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-blue-500">What I heard</span>
+                    {lastAudio && (
+                      <button 
+                        onClick={() => playAudio(lastAudio)}
+                        className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors flex items-center space-x-1"
+                      >
+                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span>Listen Back</span>
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Assign To</label>
-                    <p className="text-sm font-bold text-slate-800">{pendingAssignment.userName}</p>
+                  <p className="text-lg sm:text-xl font-medium text-slate-800 leading-relaxed italic">
+                    "{transcript}"
+                  </p>
+                </div>
+              )}
+
+              {status === "confirming" && pendingAssignment && (
+                <div className="relative z-10 space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-2">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-6 sm:h-8 w-1 bg-blue-600 rounded-full" />
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900">Proposed Action</h3>
+                      </div>
+                      {pendingAssignment.importance && (
+                        <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-red-50 text-red-600 border border-red-100">
+                           <span className="text-[8px] sm:text-[10px] font-black">RANK: {pendingAssignment.importance}/10</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/50">
+                        <label className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Target Objective</label>
+                        <p className="text-sm sm:text-md font-bold text-slate-800">{pendingAssignment.taskTitle}</p>
+                        {pendingAssignment.tags && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {pendingAssignment.tags.split(',').map((t, i) => (
+                              <span key={i} className="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
+                                #{t.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/50">
+                        <label className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Assignee</label>
+                        <div className="flex items-center space-x-2">
+                          <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-blue-100 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-blue-600">
+                            {pendingAssignment.userName.charAt(0)}
+                          </div>
+                          <p className="text-sm sm:text-md font-bold text-slate-800">{pendingAssignment.userName}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/50">
+                        <label className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Priority Level</label>
+                        <div className="flex items-center space-x-2">
+                           <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
+                             pendingAssignment.priority === 'high' ? 'bg-red-500' :
+                             pendingAssignment.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'
+                           }`} />
+                           <p className="text-sm sm:text-md font-bold text-slate-800 capitalize">{pendingAssignment.priority || "Standard"}</p>
+                        </div>
+                      </div>
+
+                      {pendingAssignment.dueDate && (
+                        <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/50">
+                          <label className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Due Date</label>
+                          <p className="text-sm sm:text-md font-bold text-slate-800">{new Date(pendingAssignment.dueDate).toLocaleDateString()}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Priority</label>
-                    <p className="text-sm font-bold text-slate-800 capitalize">{pendingAssignment.priority || "Medium"}</p>
+
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+                    <button
+                      onClick={confirmAssignment}
+                      className="flex-1 rounded-[1rem] sm:rounded-[1.25rem] bg-slate-900 px-6 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-white transition-all hover:bg-black hover:scale-[1.02] active:scale-95 shadow-lg"
+                    >
+                      Execute Command
+                    </button>
+                    <button
+                      onClick={cancelAssignment}
+                      className="flex-1 rounded-[1rem] sm:rounded-[1.25rem] bg-white border border-slate-200 px-6 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-slate-600 transition-all hover:bg-slate-50"
+                    >
+                      Discard
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={confirmAssignment}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
-                >
-                  Confirm Task
-                </button>
-                <button
-                  onClick={cancelAssignment}
-                  className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-300"
-                >
-                  Cancel
-                </button>
-              </div>
+              )}
             </div>
           )}
         </div>
       )}
 
       {status === "idle" && !isListening && (
-        <p className="text-xs text-slate-400 italic">
-          Tip: Try "Assign fixing the login bug to Sumanth by Friday"
-        </p>
+        <div className="opacity-60 transition-opacity hover:opacity-100 duration-300">
+           <p className="text-xs text-slate-400 font-medium text-center bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-100">
+            "Ask: What is Charlie's high-priority task?"
+          </p>
+        </div>
       )}
     </div>
   );

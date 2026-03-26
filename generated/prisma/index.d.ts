@@ -2017,8 +2017,18 @@ export namespace Prisma {
 
   export type AggregateTask = {
     _count: TaskCountAggregateOutputType | null
+    _avg: TaskAvgAggregateOutputType | null
+    _sum: TaskSumAggregateOutputType | null
     _min: TaskMinAggregateOutputType | null
     _max: TaskMaxAggregateOutputType | null
+  }
+
+  export type TaskAvgAggregateOutputType = {
+    importance: number | null
+  }
+
+  export type TaskSumAggregateOutputType = {
+    importance: number | null
   }
 
   export type TaskMinAggregateOutputType = {
@@ -2032,6 +2042,9 @@ export namespace Prisma {
     transcript: string | null
     summary: string | null
     suggestions: string | null
+    tags: string | null
+    audioData: string | null
+    importance: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2047,6 +2060,9 @@ export namespace Prisma {
     transcript: string | null
     summary: string | null
     suggestions: string | null
+    tags: string | null
+    audioData: string | null
+    importance: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2062,11 +2078,22 @@ export namespace Prisma {
     transcript: number
     summary: number
     suggestions: number
+    tags: number
+    audioData: number
+    importance: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type TaskAvgAggregateInputType = {
+    importance?: true
+  }
+
+  export type TaskSumAggregateInputType = {
+    importance?: true
+  }
 
   export type TaskMinAggregateInputType = {
     id?: true
@@ -2079,6 +2106,9 @@ export namespace Prisma {
     transcript?: true
     summary?: true
     suggestions?: true
+    tags?: true
+    audioData?: true
+    importance?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2094,6 +2124,9 @@ export namespace Prisma {
     transcript?: true
     summary?: true
     suggestions?: true
+    tags?: true
+    audioData?: true
+    importance?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2109,6 +2142,9 @@ export namespace Prisma {
     transcript?: true
     summary?: true
     suggestions?: true
+    tags?: true
+    audioData?: true
+    importance?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -2152,6 +2188,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: TaskAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TaskSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: TaskMinAggregateInputType
@@ -2182,6 +2230,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: TaskCountAggregateInputType | true
+    _avg?: TaskAvgAggregateInputType
+    _sum?: TaskSumAggregateInputType
     _min?: TaskMinAggregateInputType
     _max?: TaskMaxAggregateInputType
   }
@@ -2197,9 +2247,14 @@ export namespace Prisma {
     transcript: string | null
     summary: string | null
     suggestions: string | null
+    tags: string | null
+    audioData: string | null
+    importance: number | null
     createdAt: Date
     updatedAt: Date
     _count: TaskCountAggregateOutputType | null
+    _avg: TaskAvgAggregateOutputType | null
+    _sum: TaskSumAggregateOutputType | null
     _min: TaskMinAggregateOutputType | null
     _max: TaskMaxAggregateOutputType | null
   }
@@ -2229,6 +2284,9 @@ export namespace Prisma {
     transcript?: boolean
     summary?: boolean
     suggestions?: boolean
+    tags?: boolean
+    audioData?: boolean
+    importance?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     assignedTo?: boolean | UserDefaultArgs<ExtArgs>
@@ -2245,6 +2303,9 @@ export namespace Prisma {
     transcript?: boolean
     summary?: boolean
     suggestions?: boolean
+    tags?: boolean
+    audioData?: boolean
+    importance?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     assignedTo?: boolean | UserDefaultArgs<ExtArgs>
@@ -2261,6 +2322,9 @@ export namespace Prisma {
     transcript?: boolean
     summary?: boolean
     suggestions?: boolean
+    tags?: boolean
+    audioData?: boolean
+    importance?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     assignedTo?: boolean | UserDefaultArgs<ExtArgs>
@@ -2277,11 +2341,14 @@ export namespace Prisma {
     transcript?: boolean
     summary?: boolean
     suggestions?: boolean
+    tags?: boolean
+    audioData?: boolean
+    importance?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "userId" | "dueDate" | "priority" | "transcript" | "summary" | "suggestions" | "createdAt" | "updatedAt", ExtArgs["result"]["task"]>
+  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "userId" | "dueDate" | "priority" | "transcript" | "summary" | "suggestions" | "tags" | "audioData" | "importance" | "createdAt" | "updatedAt", ExtArgs["result"]["task"]>
   export type TaskInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignedTo?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -2308,6 +2375,9 @@ export namespace Prisma {
       transcript: string | null
       summary: string | null
       suggestions: string | null
+      tags: string | null
+      audioData: string | null
+      importance: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["task"]>
@@ -2744,6 +2814,9 @@ export namespace Prisma {
     readonly transcript: FieldRef<"Task", 'String'>
     readonly summary: FieldRef<"Task", 'String'>
     readonly suggestions: FieldRef<"Task", 'String'>
+    readonly tags: FieldRef<"Task", 'String'>
+    readonly audioData: FieldRef<"Task", 'String'>
+    readonly importance: FieldRef<"Task", 'Int'>
     readonly createdAt: FieldRef<"Task", 'DateTime'>
     readonly updatedAt: FieldRef<"Task", 'DateTime'>
   }
@@ -3188,6 +3261,9 @@ export namespace Prisma {
     transcript: 'transcript',
     summary: 'summary',
     suggestions: 'suggestions',
+    tags: 'tags',
+    audioData: 'audioData',
+    importance: 'importance',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -3234,6 +3310,13 @@ export namespace Prisma {
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
   /**
    * Deep Input Types
@@ -3294,6 +3377,9 @@ export namespace Prisma {
     transcript?: StringNullableFilter<"Task"> | string | null
     summary?: StringNullableFilter<"Task"> | string | null
     suggestions?: StringNullableFilter<"Task"> | string | null
+    tags?: StringNullableFilter<"Task"> | string | null
+    audioData?: StringNullableFilter<"Task"> | string | null
+    importance?: IntNullableFilter<"Task"> | number | null
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
     assignedTo?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -3310,6 +3396,9 @@ export namespace Prisma {
     transcript?: SortOrderInput | SortOrder
     summary?: SortOrderInput | SortOrder
     suggestions?: SortOrderInput | SortOrder
+    tags?: SortOrderInput | SortOrder
+    audioData?: SortOrderInput | SortOrder
+    importance?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     assignedTo?: UserOrderByWithRelationInput
@@ -3329,6 +3418,9 @@ export namespace Prisma {
     transcript?: StringNullableFilter<"Task"> | string | null
     summary?: StringNullableFilter<"Task"> | string | null
     suggestions?: StringNullableFilter<"Task"> | string | null
+    tags?: StringNullableFilter<"Task"> | string | null
+    audioData?: StringNullableFilter<"Task"> | string | null
+    importance?: IntNullableFilter<"Task"> | number | null
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
     assignedTo?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -3345,11 +3437,16 @@ export namespace Prisma {
     transcript?: SortOrderInput | SortOrder
     summary?: SortOrderInput | SortOrder
     suggestions?: SortOrderInput | SortOrder
+    tags?: SortOrderInput | SortOrder
+    audioData?: SortOrderInput | SortOrder
+    importance?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TaskCountOrderByAggregateInput
+    _avg?: TaskAvgOrderByAggregateInput
     _max?: TaskMaxOrderByAggregateInput
     _min?: TaskMinOrderByAggregateInput
+    _sum?: TaskSumOrderByAggregateInput
   }
 
   export type TaskScalarWhereWithAggregatesInput = {
@@ -3366,6 +3463,9 @@ export namespace Prisma {
     transcript?: StringNullableWithAggregatesFilter<"Task"> | string | null
     summary?: StringNullableWithAggregatesFilter<"Task"> | string | null
     suggestions?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    tags?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    audioData?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    importance?: IntNullableWithAggregatesFilter<"Task"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
   }
@@ -3419,6 +3519,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedTo: UserCreateNestedOneWithoutTasksInput
@@ -3435,6 +3538,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -3449,6 +3555,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedTo?: UserUpdateOneRequiredWithoutTasksNestedInput
@@ -3465,6 +3574,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3480,6 +3592,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -3494,6 +3609,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3509,6 +3627,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3594,6 +3715,17 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type DateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[]
@@ -3626,8 +3758,15 @@ export namespace Prisma {
     transcript?: SortOrder
     summary?: SortOrder
     suggestions?: SortOrder
+    tags?: SortOrder
+    audioData?: SortOrder
+    importance?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type TaskAvgOrderByAggregateInput = {
+    importance?: SortOrder
   }
 
   export type TaskMaxOrderByAggregateInput = {
@@ -3641,6 +3780,9 @@ export namespace Prisma {
     transcript?: SortOrder
     summary?: SortOrder
     suggestions?: SortOrder
+    tags?: SortOrder
+    audioData?: SortOrder
+    importance?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -3656,8 +3798,15 @@ export namespace Prisma {
     transcript?: SortOrder
     summary?: SortOrder
     suggestions?: SortOrder
+    tags?: SortOrder
+    audioData?: SortOrder
+    importance?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type TaskSumOrderByAggregateInput = {
+    importance?: SortOrder
   }
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -3689,6 +3838,22 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -3763,6 +3928,14 @@ export namespace Prisma {
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -3844,6 +4017,17 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[]
@@ -3872,17 +4056,6 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | null
@@ -3895,6 +4068,33 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -3921,6 +4121,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -3935,6 +4138,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -3978,6 +4184,9 @@ export namespace Prisma {
     transcript?: StringNullableFilter<"Task"> | string | null
     summary?: StringNullableFilter<"Task"> | string | null
     suggestions?: StringNullableFilter<"Task"> | string | null
+    tags?: StringNullableFilter<"Task"> | string | null
+    audioData?: StringNullableFilter<"Task"> | string | null
+    importance?: IntNullableFilter<"Task"> | number | null
     createdAt?: DateTimeFilter<"Task"> | Date | string
     updatedAt?: DateTimeFilter<"Task"> | Date | string
   }
@@ -4028,6 +4237,9 @@ export namespace Prisma {
     transcript?: string | null
     summary?: string | null
     suggestions?: string | null
+    tags?: string | null
+    audioData?: string | null
+    importance?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4042,6 +4254,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4056,6 +4271,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4070,6 +4288,9 @@ export namespace Prisma {
     transcript?: NullableStringFieldUpdateOperationsInput | string | null
     summary?: NullableStringFieldUpdateOperationsInput | string | null
     suggestions?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    audioData?: NullableStringFieldUpdateOperationsInput | string | null
+    importance?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
