@@ -11,7 +11,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    GOOGLE_CLOUD_API_KEY: z.string().min(1),
+    GOOGLE_CLOUD_API_KEY: z.string().min(1).optional(),
     GROQ_API_KEY: z.string().min(1),
   },
 
