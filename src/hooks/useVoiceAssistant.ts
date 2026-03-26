@@ -125,9 +125,11 @@ export const useVoiceAssistant = () => {
           return;
         }
 
-        const searchName = (userNameSearch || "").toLowerCase();
-        const user = users?.find((u) => u.name.toLowerCase() === searchName)
-          ?? users?.find((u) => u.name.toLowerCase().includes(searchName) || searchName.includes(u.name.toLowerCase()));
+        const searchName = (userNameSearch || "").trim().toLowerCase();
+        const user = searchName 
+          ? (users?.find((u) => u.name.toLowerCase() === searchName)
+            ?? users?.find((u) => u.name.toLowerCase().includes(searchName) || searchName.includes(u.name.toLowerCase())))
+          : null;
         const existingTask = tasks?.find((t) => t.title.toLowerCase().includes(taskTitleSearch?.toLowerCase() || ""));
 
         // Intelligent Conflict Check
