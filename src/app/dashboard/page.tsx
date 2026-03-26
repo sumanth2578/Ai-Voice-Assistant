@@ -1,6 +1,8 @@
 import { api, HydrateClient } from "~/trpc/server";
 import { TaskBoard } from "~/app/_components/TaskBoard";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   void api.task.getAll.prefetch();
   void api.task.getUsers.prefetch();
