@@ -170,6 +170,7 @@ export const taskRouter = createTRPCRouter({
           status: input.status,
           priority: input.priority,
         },
+        include: { assignedTo: true },
       });
     }),
 

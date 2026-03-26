@@ -18,6 +18,7 @@ export const VoiceInterface = () => {
     confirmAssignment,
     cancelAssignment,
     handleBriefing,
+    setPendingPriority,
   } = useVoiceAssistant();
 
   useEffect(() => {
@@ -77,10 +78,17 @@ export const VoiceInterface = () => {
           className={`group relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-300 shadow-xl ${
             isListening 
               ? "bg-red-500 text-white shadow-red-200" 
+              : status === "processing"
+              ? "bg-blue-600 text-white shadow-blue-200 animate-pulse"
               : "bg-white text-blue-600 hover:scale-110 active:scale-95 border-2 border-slate-100"
           }`}
         >
-          {isListening ? (
+          {status === "processing" ? (
+             <svg className="h-10 w-10 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+             </svg>
+          ) : isListening ? (
              <svg className="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="6" y="6" width="12" height="12" rx="2" />
              </svg>
@@ -114,11 +122,11 @@ export const VoiceInterface = () => {
           )}
 
           {/* Creation/Confirmation Card */}
-          {(transcript || status === "confirming") && status !== "answering" && (
+          {(transcript || status === "confirming" || status === "processing") && status !== "answering" && (
             <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100">
                <div className="absolute top-0 right-0 h-32 w-32 -mr-16 -mt-16 rounded-full bg-blue-50 opacity-40 blur-3xl animate-pulse" />
 
-               {transcript && (
+               {transcript && status !== "processing" && (
                 <div className="relative z-10 space-y-2 sm:space-y-4 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-slate-100">
                   <div className="flex justify-between items-center">
                     <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-blue-500">What I heard</span>
@@ -140,19 +148,16 @@ export const VoiceInterface = () => {
                 </div>
               )}
 
-              {status === "confirming" && pendingAssignment && (
+              {(status === "confirming" || status === "processing") && pendingAssignment && (
                 <div className="relative z-10 space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-2">
                   <div className="space-y-4 sm:space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
                       <div className="flex items-center space-x-3">
-                        <div className="h-6 sm:h-8 w-1 bg-blue-600 rounded-full" />
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900">Proposed Action</h3>
+                        <div className={`h-6 sm:h-8 w-1 rounded-full transition-colors ${status === "processing" ? "bg-amber-400 animate-pulse" : "bg-blue-600"}`} />
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                          {status === "processing" ? "Executing Command..." : "Proposed Action"}
+                        </h3>
                       </div>
-                      {pendingAssignment.importance && (
-                        <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-red-50 text-red-600 border border-red-100">
-                           <span className="text-[8px] sm:text-[10px] font-black">RANK: {pendingAssignment.importance}/10</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -182,12 +187,21 @@ export const VoiceInterface = () => {
 
                       <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/50">
                         <label className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Priority Level</label>
-                        <div className="flex items-center space-x-2">
-                           <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
-                             pendingAssignment.priority === 'high' ? 'bg-red-500' :
-                             pendingAssignment.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'
-                           }`} />
-                           <p className="text-sm sm:text-md font-bold text-slate-800 capitalize">{pendingAssignment.priority || "Standard"}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                           {(['low', 'medium', 'high'] as const).map((p) => (
+                             <button
+                               key={p}
+                               onClick={() => setPendingPriority(p)}
+                               className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${
+                                 pendingAssignment.priority === p 
+                                   ? (p === 'high' ? 'bg-red-500 text-white shadow-lg' : 
+                                      p === 'medium' ? 'bg-amber-500 text-white shadow-lg' : 'bg-emerald-500 text-white shadow-lg')
+                                   : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'
+                               }`}
+                             >
+                               {p}
+                             </button>
+                           ))}
                         </div>
                       </div>
 
@@ -203,9 +217,10 @@ export const VoiceInterface = () => {
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
                     <button
                       onClick={confirmAssignment}
-                      className="flex-1 rounded-[1rem] sm:rounded-[1.25rem] bg-slate-900 px-6 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-white transition-all hover:bg-black hover:scale-[1.02] active:scale-95 shadow-lg"
+                      disabled={status === "processing"}
+                      className="flex-1 rounded-[1rem] sm:rounded-[1.25rem] bg-slate-900 px-6 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-white transition-all hover:bg-black hover:scale-[1.02] active:scale-95 shadow-lg disabled:opacity-50"
                     >
-                      Execute Command
+                      {status === "processing" ? "Executing..." : "Execute Command"}
                     </button>
                     <button
                       onClick={cancelAssignment}

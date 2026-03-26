@@ -256,6 +256,9 @@ export const useVoiceAssistant = () => {
   return {
     isListening, transcript, status, statusMessage, pendingAssignment, aiResponse, lastAudio,
     startListening, stopListening, confirmAssignment, cancelAssignment, handleBriefing,
-    reset: () => { setTranscript(""); setStatus("idle"); setStatusMessage(""); setPendingAssignment(null); setAiResponse(null); }
+    reset: () => { setTranscript(""); setStatus("idle"); setStatusMessage(""); setPendingAssignment(null); setAiResponse(null); },
+    setPendingPriority: (priority: "low" | "medium" | "high") => {
+      setPendingAssignment(prev => prev ? { ...prev, priority } : null);
+    },
   };
 };

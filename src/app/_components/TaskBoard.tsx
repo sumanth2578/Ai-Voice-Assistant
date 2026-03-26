@@ -15,6 +15,31 @@ export const TaskBoard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
 
+  const utils = api.useUtils();
+  const updateTask = api.task.update.useMutation({
+    onMutate: async (newData) => {
+      await utils.task.getAll.cancel();
+      const previous = utils.task.getAll.getData();
+      utils.task.getAll.setData(undefined, (old) =>
+        old?.map((t) =>
+          t.id === newData.taskId
+            ? { ...t, status: newData.status ?? t.status, priority: newData.priority ?? t.priority }
+            : t
+        )
+      );
+      if (selectedTask?.id === newData.taskId) {
+        setSelectedTask((prev: any) => prev ? { ...prev, status: newData.status ?? prev.status, priority: newData.priority ?? prev.priority } : prev);
+      }
+      return { previous };
+    },
+    onError: (_err, _newData, context) => {
+      if (context?.previous) utils.task.getAll.setData(undefined, context.previous);
+    },
+    onSettled: () => {
+      void utils.task.getAll.invalidate();
+    },
+  });
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
@@ -163,7 +188,29 @@ export const TaskBoard = () => {
                   </p>
                 )}
 
-              <div className="mt-6 flex items-center space-x-3 border-t border-slate-50 pt-4">
+              <div className="mt-4 flex items-center space-x-1">
+                {(['todo', 'in-progress', 'done'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (task.status !== s) updateTask.mutate({ taskId: task.id, status: s });
+                    }}
+                    className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all ${
+                      task.status === s
+                        ? (s === 'done' ? 'bg-emerald-500 text-white shadow-sm' :
+                           s === 'in-progress' ? 'bg-amber-500 text-white shadow-sm' : 'bg-blue-500 text-white shadow-sm')
+                        : 'bg-slate-50 text-slate-400 border border-slate-150 hover:border-blue-300 hover:text-slate-600'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 flex items-center space-x-3 border-t border-slate-50 pt-4">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-600 text-[10px]">
                   {task.assignedTo.name.charAt(0)}
                 </div>
@@ -224,7 +271,7 @@ export const TaskBoard = () => {
                   </h2>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 py-6 sm:py-8 border-y border-slate-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 py-6 sm:py-8 border-y border-slate-50">
                   <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50/50">
                     <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400">Assigned To</p>
                     <div className="flex items-center space-x-2">
@@ -234,6 +281,27 @@ export const TaskBoard = () => {
                       <p className="text-xs sm:text-sm font-bold text-slate-800">{selectedTask.assignedTo.name}</p>
                     </div>
                   </div>
+                  
+                  <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50/50">
+                    <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400">Task Priority</p>
+                    <div className="flex items-center space-x-1 mt-1">
+                      {(['low', 'medium', 'high'] as const).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => updateTask.mutate({ taskId: selectedTask.id, priority: p })}
+                          className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase transition-all ${
+                            selectedTask.priority === p 
+                              ? (p === 'high' ? 'bg-red-500 text-white shadow-md' : 
+                                 p === 'medium' ? 'bg-amber-500 text-white shadow-md' : 'bg-emerald-500 text-white shadow-md')
+                              : 'bg-white text-slate-400 border border-slate-100'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="space-y-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50/50">
                     <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400">Timeline</p>
                     <p className="text-xs sm:text-sm font-bold text-slate-800">
@@ -279,11 +347,6 @@ export const TaskBoard = () => {
                       <div className="p-6 rounded-[2rem] bg-emerald-50/30 border border-emerald-100/50">
                         <div className="flex justify-between items-center mb-3">
                           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Executive Summary</p>
-                          {selectedTask.importance > 0 && (
-                            <span className="text-[8px] font-black bg-white px-2 py-0.5 rounded-full border border-emerald-100 text-emerald-600">
-                              RANK: {selectedTask.importance}/10
-                            </span>
-                          )}
                         </div>
                         <p className="text-sm text-slate-700 leading-relaxed font-medium">
                           {selectedTask.summary}
