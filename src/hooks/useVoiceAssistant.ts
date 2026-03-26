@@ -6,7 +6,7 @@ import { api } from "~/trpc/react";
 export const useVoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [status, setStatus] = useState<"idle" | "listening" | "processing" | "confirming" | "answering" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "listening" | "processing" | "confirming" | "selecting_user" | "answering" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
   const [aiResponse, setAiResponse] = useState<any>(null);
   const [lastAudio, setLastAudio] = useState<string | null>(null);
@@ -136,9 +136,9 @@ export const useVoiceAssistant = () => {
 
         setPendingAssignment({
           taskId: existingTask?.id ?? "",
-          userId: user?.id ?? users?.[0]?.id ?? "",
+          userId: user?.id ?? "",
           taskTitle: taskTitleSearch || "New Task",
-          userName: user?.name ?? "Multiple Team Members",
+          userName: user?.name ?? "",
           priority: priority || "medium",
           dueDate,
           transcript: text,
@@ -149,6 +149,14 @@ export const useVoiceAssistant = () => {
           isNewTask: !existingTask,
           audioData: audioBase64,
         });
+
+        if (!user && intent === "CREATE") {
+          setStatus("selecting_user");
+          const msg = `Who should I assign "${taskTitleSearch || "this task"}" to?`;
+          setStatusMessage(msg);
+          speak(msg);
+          return;
+        }
 
         setStatus("confirming");
         let question = !existingTask 
@@ -256,11 +264,18 @@ export const useVoiceAssistant = () => {
   const stopListening = () => { if (mediaRecorder?.state !== "inactive") mediaRecorder?.stop(); };
 
   return {
-    isListening, transcript, status, statusMessage, pendingAssignment, aiResponse, lastAudio,
+    isListening, transcript, status, statusMessage, pendingAssignment, aiResponse, lastAudio, users,
     startListening, stopListening, confirmAssignment, cancelAssignment, handleBriefing,
     reset: () => { setTranscript(""); setStatus("idle"); setStatusMessage(""); setPendingAssignment(null); setAiResponse(null); },
     setPendingPriority: (priority: "low" | "medium" | "high") => {
       setPendingAssignment(prev => prev ? { ...prev, priority } : null);
     },
+    selectUser: (userId: string, userName: string) => {
+      setPendingAssignment(prev => prev ? { ...prev, userId, userName } : null);
+      setStatus("confirming");
+      const question = `Great. Should I assign "${pendingAssignment?.taskTitle}" to ${userName}?`;
+      setStatusMessage(question);
+      speak(question);
+    }
   };
 };

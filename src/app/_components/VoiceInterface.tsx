@@ -19,6 +19,8 @@ export const VoiceInterface = () => {
     cancelAssignment,
     handleBriefing,
     setPendingPriority,
+    users,
+    selectUser,
   } = useVoiceAssistant();
 
   useEffect(() => {
@@ -150,8 +152,42 @@ export const VoiceInterface = () => {
             </div>
           )}
 
+          {/* User Selection Card */}
+          {status === "selecting_user" && pendingAssignment && (
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100 animate-[slide-up_0.4s_ease-out]">
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center space-x-3">
+                  <div className="h-6 w-1 bg-amber-500 rounded-full" />
+                  <h3 className="text-sm sm:text-lg font-bold text-slate-900">Assign To...</h3>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {users?.map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => selectUser(user.id, user.name)}
+                      className="flex flex-col items-center space-y-2 p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-all hover:scale-[1.02] active:scale-95 group"
+                    >
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white flex items-center justify-center text-sm font-bold text-slate-600 group-hover:text-blue-600 shadow-sm">
+                        {user.name.charAt(0)}
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-700 group-hover:text-blue-700">{user.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={cancelAssignment}
+                  className="w-full rounded-xl py-3 text-xs font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Cancel Creation
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Confirmation Card */}
-          {(transcript || status === "confirming" || status === "processing") && status !== "answering" && status !== "success" && status !== "error" && (
+          {(transcript || status === "confirming" || status === "processing") && status !== "answering" && status !== "success" && status !== "error" && status !== "selecting_user" && (
             <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-white p-5 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-100">
                {transcript && status !== "processing" && (
                 <div className="relative z-10 space-y-2 mb-5 sm:mb-6 pb-5 sm:pb-6 border-b border-slate-100">
