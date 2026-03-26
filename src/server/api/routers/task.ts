@@ -59,13 +59,13 @@ export const taskRouter = createTRPCRouter({
             {
               role: "system",
               content: `You are an intelligent voice assistant for a task management system.
-              
+
               Rules:
               1. Determine the user's intent: "CREATE", "UPDATE", or "QUERY".
               2. Return ONLY a JSON object with the following keys:
                  - "intent": ("CREATE", "UPDATE", or "QUERY")
                  - "task": (Target task title or new task title)
-                 - "user": (Target user name if mentioned)
+                 - "user": (Target user name — MUST be one of the Available Users listed below)
                  - "status": ("todo", "in-progress", "done" if an update)
                  - "priority": ("low", "medium", "high")
                  - "dueDate": (ISO date string or null)
@@ -74,10 +74,17 @@ export const taskRouter = createTRPCRouter({
                  - "summary": (Friendly one-sentence summary of the action)
                  - "suggestions": (Comma-separated next steps)
                  - "query_answer": (Natural language answer ONLY if intent is "QUERY")
-              
+
+              CRITICAL — User Name Matching:
+              - The input comes from speech-to-text which often misspells names.
+              - You MUST fuzzy-match the spoken name to the closest Available User below.
+              - Examples: "Sumant" or "Suman" → "Sumanth", "Aliss" → "Alice", "Charley" → "Charlie", "Bob" → "Bob"
+              - The "user" field MUST ALWAYS be an exact name from the Available Users list.
+              - If no name is mentioned or no match is possible, use null.
+
               Context:
               ${usersContext}${tasksContext}
-              
+
               Example Intents:
               - CREATE: "Assign a logo task to Alice" -> {"intent": "CREATE", "task": "Logo", "user": "Alice", ...}
               - UPDATE: "Set the logo task to done" -> {"intent": "UPDATE", "task": "Logo", "status": "done", ...}
