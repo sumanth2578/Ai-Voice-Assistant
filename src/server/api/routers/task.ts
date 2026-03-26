@@ -80,7 +80,7 @@ export const taskRouter = createTRPCRouter({
               - You MUST fuzzy-match the spoken name to the closest Available User below.
               - Examples: "Sumant" or "Suman" → "Sumanth", "Aliss" → "Alice", "Charley" → "Charlie", "Bob" → "Bob"
               - The "user" field MUST ALWAYS be an exact name from the Available Users list.
-              - If no name is mentioned or no match is possible, use null.
+              - IMPORTANT: If no name is mentioned or no match is possible, use null. NEVER guess.
 
               Context:
               ${usersContext}${tasksContext}
