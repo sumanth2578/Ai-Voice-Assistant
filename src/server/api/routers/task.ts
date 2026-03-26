@@ -119,7 +119,14 @@ export const taskRouter = createTRPCRouter({
   }),
 
   getUsers: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db.user.findMany();
+    try {
+      const users = await ctx.db.user.findMany();
+      console.log("getUsers returned:", users.length, "users");
+      return users;
+    } catch (error) {
+      console.error("getUsers error:", error);
+      throw error;
+    }
   }),
 
   create: publicProcedure
