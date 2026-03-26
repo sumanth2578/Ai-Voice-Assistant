@@ -6,6 +6,7 @@ import { api } from "~/trpc/react";
 export const TaskBoard = () => {
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const { data: tasks, isLoading } = api.task.getAll.useQuery();
   const { data: users } = api.task.getUsers.useQuery();
 
@@ -44,6 +45,26 @@ export const TaskBoard = () => {
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  const handleCloseModal = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+    }
+    setSelectedTask(null);
+  };
+
+  const playAudio = (base64: string) => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+      return;
+    }
+    const audio = new Audio(`data:audio/webm;base64,${base64}`);
+    audio.onended = () => setCurrentAudio(null);
+    setCurrentAudio(audio);
+    void audio.play();
+  };
 
   if (!hasMounted || isLoading) {
     return (
@@ -251,7 +272,7 @@ export const TaskBoard = () => {
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setSelectedTask(null)}
+            onClick={handleCloseModal}
           />
 
           <div className="relative w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white p-5 sm:p-8 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] sm:shadow-[0_30px_70px_rgba(0,0,0,0.2)] border-t sm:border border-slate-200/50 animate-[slide-up_0.3s_ease-out] sm:mx-4">
@@ -262,7 +283,7 @@ export const TaskBoard = () => {
 
              {/* Close */}
              <button
-                onClick={() => setSelectedTask(null)}
+                onClick={handleCloseModal}
                 className="absolute top-3 right-3 sm:top-6 sm:right-6 p-2 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors z-20"
              >
                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -348,17 +369,23 @@ export const TaskBoard = () => {
                             &ldquo;{selectedTask.transcript}&rdquo;
                           </p>
                         </div>
-                        {selectedTask.audioData && (
+                         {selectedTask.audioData && (
                           <button
-                            onClick={() => {
-                              const audio = new Audio(`data:audio/webm;base64,${selectedTask.audioData}`);
-                              void audio.play();
-                            }}
-                            className="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-90 shrink-0"
+                            onClick={() => playAudio(selectedTask.audioData)}
+                            className={`p-2.5 rounded-full transition-all shadow-lg active:scale-90 shrink-0 ${
+                              currentAudio ? "bg-red-500 text-white shadow-red-200" : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"
+                            }`}
+                            title={currentAudio ? "Stop Audio" : "Play Voice Memo"}
                           >
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
+                            {currentAudio ? (
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                <rect x="6" y="6" width="12" height="12" rx="2" />
+                              </svg>
+                            ) : (
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            )}
                           </button>
                         )}
                       </div>

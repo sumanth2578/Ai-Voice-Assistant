@@ -5,6 +5,7 @@ import { useVoiceAssistant } from "~/hooks/useVoiceAssistant";
 
 export const VoiceInterface = () => {
   const [hasMounted, setHasMounted] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const {
     isListening,
     transcript,
@@ -28,7 +29,14 @@ export const VoiceInterface = () => {
   }, []);
 
   const playAudio = (base64: string) => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+      return;
+    }
     const audio = new Audio(`data:audio/webm;base64,${base64}`);
+    audio.onended = () => setCurrentAudio(null);
+    setCurrentAudio(audio);
     void audio.play();
   };
 
@@ -196,12 +204,25 @@ export const VoiceInterface = () => {
                     {lastAudio && (
                       <button
                         onClick={() => playAudio(lastAudio)}
-                        className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-500 transition-colors flex items-center space-x-1"
+                        className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-colors flex items-center space-x-1 ${
+                          currentAudio ? "text-red-500" : "text-slate-400 hover:text-blue-500"
+                        }`}
                       >
-                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                        <span>Listen Back</span>
+                        {currentAudio ? (
+                          <>
+                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                              <rect x="6" y="6" width="12" height="12" rx="2" />
+                            </svg>
+                            <span>Stop Audio</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                            <span>Listen Back</span>
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
