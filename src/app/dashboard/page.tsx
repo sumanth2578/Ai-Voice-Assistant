@@ -9,14 +9,14 @@ export default async function DashboardPage() {
 
   return (
     <HydrateClient>
-      <main className="min-h-screen bg-[#f8fafc] text-slate-900 pt-20 px-4 md:px-8">
-        <div className="container mx-auto py-16">
-          <header className="mb-12">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center space-x-3">
-              <span className="h-8 w-2 bg-blue-500 rounded-full" />
-              <span>Assigned Dashboards</span>
+      <main className="min-h-screen bg-[#f8fafc] text-slate-900 px-4 md:px-8">
+        <div className="container mx-auto py-6 sm:py-10">
+          <header className="mb-6 sm:mb-10 animate-[fade-in_0.5s_ease-out]">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center space-x-3">
+              <span className="h-6 sm:h-8 w-1.5 sm:w-2 bg-blue-500 rounded-full" />
+              <span>Dashboard</span>
             </h2>
-            <p className="mt-2 text-slate-500 font-medium ml-5">View and manage tasks by assignee</p>
+            <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-slate-500 font-medium ml-4 sm:ml-5">View and manage tasks by assignee</p>
           </header>
 
           <TaskBoard />

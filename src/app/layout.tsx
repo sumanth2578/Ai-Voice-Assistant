@@ -43,7 +43,7 @@ export default function RootLayout({
       <body>
         <TRPCReactProvider>
           <Navigation />
-          <main className="max-w-7xl mx-auto">
+          <main className="max-w-7xl mx-auto pt-14 sm:pt-16 pb-16 md:pb-0">
             {children}
           </main>
         </TRPCReactProvider>
