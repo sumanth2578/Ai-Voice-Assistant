@@ -88,6 +88,9 @@ Prisma.NullTypes = {
  * Enums
  */
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -117,6 +120,11 @@ exports.Prisma.TaskScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
 };
 
 exports.Prisma.NullsOrder = {
@@ -167,8 +175,7 @@ const config = {
   "datasourceNames": [
     "db"
   ],
-  "activeProvider": "sqlite",
-  "postinstall": false,
+  "activeProvider": "postgresql",
   "inlineDatasources": {
     "db": {
       "url": {
@@ -177,8 +184,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id    String @id @default(cuid())\n  name  String\n  tasks Task[]\n}\n\nmodel Task {\n  id          String    @id @default(cuid())\n  title       String\n  description String?\n  status      String    @default(\"todo\") // todo, in-progress, done\n  assignedTo  User      @relation(fields: [userId], references: [id])\n  userId      String\n  dueDate     DateTime?\n  priority    String    @default(\"medium\") // low, medium, high\n  transcript  String?\n  summary     String?\n  suggestions String?\n  tags        String?\n  audioData   String?\n  importance  Int?      @default(0)\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n\n  @@index([userId])\n}\n",
-  "inlineSchemaHash": "69180a7d8dc21652471b752195ff2bbbfa69767d44706814c9ce90db5de13a0b",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider  = \"postgresql\"\n  url       = env(\"DATABASE_URL\")\n  directUrl = env(\"DIRECT_URL\")\n}\n\nmodel User {\n  id    String @id @default(cuid())\n  name  String\n  tasks Task[]\n}\n\nmodel Task {\n  id          String    @id @default(cuid())\n  title       String\n  description String?\n  status      String    @default(\"todo\") // todo, in-progress, done\n  assignedTo  User      @relation(fields: [userId], references: [id])\n  userId      String\n  dueDate     DateTime?\n  priority    String    @default(\"medium\") // low, medium, high\n  transcript  String?\n  summary     String?\n  suggestions String?\n  tags        String?\n  audioData   String?\n  importance  Int?      @default(0)\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n\n  @@index([userId])\n}\n",
+  "inlineSchemaHash": "ad86aa47cdc8dc513cf3720da0a4e2c138954aaf88c9d801f44dde4b1160111e",
   "copyEngine": true
 }
 
