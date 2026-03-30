@@ -20,6 +20,7 @@ async function main() {
   const sumanth = await prisma.user.create({
     data: { name: "Sumanth" },
   });
+  
 
   console.log("Users created:", [alice.name, bob.name, charlie.name, sumanth.name]);
 

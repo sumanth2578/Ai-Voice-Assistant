@@ -18,7 +18,6 @@ export const VoiceInterface = () => {
     stopListening,
     confirmAssignment,
     cancelAssignment,
-    handleBriefing,
     setPendingPriority,
     users,
     selectUser,
@@ -52,24 +51,6 @@ export const VoiceInterface = () => {
             Your workspace, controlled by your voice.
           </p>
         </div>
-
-        <button
-          onClick={handleBriefing}
-          className={`flex items-center space-x-2 px-5 sm:px-6 py-2.5 rounded-full text-sm font-bold border transition-all shadow-sm active:scale-95 ${
-            status === "answering"
-              ? "bg-red-50 text-red-700 border-red-100 hover:bg-red-100"
-              : "bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100"
-          }`}
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {status === "answering" ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            )}
-          </svg>
-          <span>{status === "answering" ? "Stop Briefing" : "Get Daily Briefing"}</span>
-        </button>
       </div>
 
       {/* Main Hub — centered mic button */}

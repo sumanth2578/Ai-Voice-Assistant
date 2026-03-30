@@ -53,44 +53,16 @@ export const useVoiceAssistant = () => {
 
   const transcribe = api.task.transcribe.useMutation();
   const parseCommand = api.task.parseCommand.useMutation();
-  const getBrief = api.task.getDailyBrief.useQuery(undefined, { enabled: false });
-
   const { data: users } = api.task.getUsers.useQuery();
   const { data: tasks } = api.task.getAll.useQuery();
-
-  const handleBriefing = async () => {
-    if (status === "answering") {
-      window.speechSynthesis?.cancel();
-      setStatus("idle");
-      setAiResponse(null);
-      return;
-    }
-
-    setStatus("processing");
-    setStatusMessage("Hold on, preparing your briefing...");
-    try {
-      const { data: briefText } = await getBrief.refetch();
-      if (briefText) {
-        setStatus("answering");
-        setAiResponse({ query_answer: briefText });
-        speak(briefText);
-      } else {
-        setStatus("error");
-        setStatusMessage("Could not retrieve briefing.");
-      }
-    } catch (e) {
-      setStatus("error");
-      setStatusMessage("Briefing failed.");
-    }
-  };
 
   const processCommand = useCallback(
     async (text: string, audioBase64?: string) => {
       setStatus("processing");
       setStatusMessage("Hold on, analyzing your request...");
-      
+
       try {
-        const result = await parseCommand.mutateAsync({ 
+        const result = await parseCommand.mutateAsync({
           transcript: text,
           users: users?.map(u => u.name),
           tasks: tasks?.map(t => t.title),
@@ -126,7 +98,7 @@ export const useVoiceAssistant = () => {
         }
 
         const searchName = (userNameSearch || "").trim().toLowerCase();
-        const user = searchName 
+        const user = searchName
           ? (users?.find((u) => u.name.toLowerCase() === searchName)
             ?? users?.find((u) => u.name.toLowerCase().includes(searchName) || searchName.includes(u.name.toLowerCase())))
           : null;
@@ -161,14 +133,14 @@ export const useVoiceAssistant = () => {
         }
 
         setStatus("confirming");
-        let question = !existingTask 
+        let question = !existingTask
           ? `Should I create "${taskTitleSearch}" and assign it to ${user?.name || "your team"}?`
           : `Assign "${existingTask.title}" to ${user?.name || "the team"}?`;
-        
+
         if (isOverloaded && user) {
           question = `${user.name} already has ${userTasks?.length} active tasks. ` + question;
         }
-        
+
         setStatusMessage(question);
         speak(question);
       } catch (err) {
@@ -183,10 +155,10 @@ export const useVoiceAssistant = () => {
 
   const confirmAssignment = async () => {
     if (!pendingAssignment) return;
-    
+
     setStatus("processing");
     setStatusMessage("Executing command...");
-    
+
     try {
       if (pendingAssignment.isNewTask) {
         await createTask.mutateAsync({
@@ -267,7 +239,7 @@ export const useVoiceAssistant = () => {
 
   return {
     isListening, transcript, status, statusMessage, pendingAssignment, aiResponse, lastAudio, users,
-    startListening, stopListening, confirmAssignment, cancelAssignment, handleBriefing,
+    startListening, stopListening, confirmAssignment, cancelAssignment,
     reset: () => { setTranscript(""); setStatus("idle"); setStatusMessage(""); setPendingAssignment(null); setAiResponse(null); },
     setPendingPriority: (priority: "low" | "medium" | "high") => {
       setPendingAssignment(prev => prev ? { ...prev, priority } : null);

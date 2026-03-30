@@ -188,33 +188,6 @@ export const taskRouter = createTRPCRouter({
       });
     }),
 
-  getDailyBrief: publicProcedure.query(async ({ ctx }) => {
-    const tasks = await ctx.db.task.findMany({
-      where: { status: { not: "done" } },
-      include: { assignedTo: true },
-    });
-
-    if (tasks.length === 0) return "You have no pending tasks. Enjoy your day!";
-
-    const taskList = tasks.map(t => `- ${t.title} (Assigned to ${t.assignedTo.name}, Priority: ${t.priority})`).join("\n");
-
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional executive assistant. Summarize the following tasks into a natural, encouraging 2-3 sentence morning briefing speaker script."
-        },
-        {
-          role: "user",
-          content: `My tasks for today:\n${taskList}`,
-        },
-      ],
-      model: "llama-3.3-70b-versatile",
-    });
-
-    return completion.choices[0]?.message?.content || "Ready for your workday!";
-  }),
-
   assign: publicProcedure
     .input(
       z.object({
@@ -226,6 +199,42 @@ export const taskRouter = createTRPCRouter({
       return await ctx.db.task.update({
         where: { id: input.taskId },
         data: { userId: input.userId },
+        include: { assignedTo: true },
+      });
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ taskId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.task.delete({
+        where: { id: input.taskId },
+      });
+    }),
+
+  editTask: publicProcedure
+    .input(
+      z.object({
+        taskId: z.string().min(1),
+        title: z.string().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        dueDate: z.string().nullish(),
+        description: z.string().nullish(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const data: Record<string, unknown> = {};
+      if (input.title !== undefined) data.title = input.title;
+      if (input.status !== undefined) data.status = input.status;
+      if (input.priority !== undefined) data.priority = input.priority;
+      if (input.dueDate !== undefined)
+        data.dueDate = input.dueDate ? new Date(input.dueDate) : null;
+      if (input.description !== undefined) data.description = input.description;
+
+      return await ctx.db.task.update({
+        where: { id: input.taskId },
+        data: data as any,
+        include: { assignedTo: true },
       });
     }),
 });
