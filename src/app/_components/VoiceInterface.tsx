@@ -239,11 +239,28 @@ export const VoiceInterface = () => {
 
                     <div className="col-span-2 sm:col-span-1 space-y-1 p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200/50">
                       <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Assignee</label>
-                      <div className="flex items-center space-x-2">
-                        <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 shrink-0">
-                          {pendingAssignment.userName.charAt(0)}
+                      <div className="relative mt-1">
+                        <select
+                          value={pendingAssignment.userId}
+                          onChange={(e) => {
+                            const user = users?.find((u) => u.id === e.target.value);
+                            if (user) selectUser(user.id, user.name);
+                          }}
+                          className="w-full appearance-none rounded-lg border border-slate-200 bg-white pl-9 pr-8 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 cursor-pointer"
+                        >
+                          {!pendingAssignment.userId && (
+                            <option value="" disabled>Select assignee...</option>
+                          )}
+                          {users?.map((u) => (
+                            <option key={u.id} value={u.id}>{u.name}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center text-[9px] font-bold text-blue-600">
+                          {pendingAssignment.userName?.charAt(0) || "?"}
                         </div>
-                        <p className="text-sm font-bold text-slate-800 truncate">{pendingAssignment.userName}</p>
+                        <svg className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </div>
                     </div>
 

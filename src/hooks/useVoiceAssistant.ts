@@ -98,10 +98,23 @@ export const useVoiceAssistant = () => {
         }
 
         const searchName = (userNameSearch || "").trim().toLowerCase();
-        const user = searchName
-          ? (users?.find((u) => u.name.toLowerCase() === searchName)
-            ?? users?.find((u) => u.name.toLowerCase().includes(searchName) || searchName.includes(u.name.toLowerCase())))
+        console.log("Full Users Data:", JSON.stringify(users));
+        console.log("Searching for user:", searchName, "in names:", users?.map(u => u.name));
+        
+        let user = searchName
+          ? (users?.find((u) => u.name.trim().toLowerCase() === searchName)
+            ?? users?.find((u) => u.name.trim().toLowerCase().includes(searchName) || searchName.includes(u.name.trim().toLowerCase())))
           : null;
+
+        // Extra fuzzy fallback
+        if (!user && searchName && users) {
+          user = users.find(u => {
+            const n = u.name.toLowerCase();
+            return n.startsWith(searchName) || searchName.startsWith(n);
+          }) || null;
+        }
+          
+        console.log("Matched result:", user ? { id: user.id, name: user.name } : "None");
         const existingTask = tasks?.find((t) => t.title.toLowerCase().includes(taskTitleSearch?.toLowerCase() || ""));
 
         // Intelligent Conflict Check
@@ -126,16 +139,21 @@ export const useVoiceAssistant = () => {
 
         if (!user && intent === "CREATE") {
           setStatus("selecting_user");
-          const msg = `Who should I assign "${taskTitleSearch || "this task"}" to?`;
+          const msg = `Who should I assign ${taskTitleSearch ? `"${taskTitleSearch}"` : "this task"} to?`;
           setStatusMessage(msg);
           speak(msg);
           return;
         }
 
         setStatus("confirming");
-        let question = !existingTask
-          ? `Should I create "${taskTitleSearch}" and assign it to ${user?.name || "your team"}?`
-          : `Assign "${existingTask.title}" to ${user?.name || "the team"}?`;
+        let question = "";
+        if (!existingTask) {
+           question = taskTitleSearch 
+             ? `Should I create "${taskTitleSearch}" and assign it to ${user?.name || "your team"}?`
+             : `Should I assign this task to ${user?.name || "the team"}?`;
+        } else {
+           question = `Assign "${existingTask.title}" to ${user?.name || "the team"}?`;
+        }
 
         if (isOverloaded && user) {
           question = `${user.name} already has ${userTasks?.length} active tasks. ` + question;
@@ -161,6 +179,9 @@ export const useVoiceAssistant = () => {
 
     try {
       if (pendingAssignment.isNewTask) {
+        if (!pendingAssignment.userId) {
+          throw new Error("Assignee must be selected for new tasks.");
+        }
         await createTask.mutateAsync({
           title: pendingAssignment.taskTitle,
           userId: pendingAssignment.userId,
@@ -184,8 +205,9 @@ export const useVoiceAssistant = () => {
       speak("Command executed successfully.");
       setPendingAssignment(null);
     } catch (e) {
+      console.error("Execution Failure:", e);
       setStatus("error");
-      setStatusMessage("Failed to update system.");
+      setStatusMessage(e instanceof Error ? e.message : "Failed to update system.");
     }
   };
 
@@ -246,10 +268,12 @@ export const useVoiceAssistant = () => {
     },
     selectUser: (userId: string, userName: string) => {
       setPendingAssignment(prev => prev ? { ...prev, userId, userName } : null);
-      setStatus("confirming");
-      const question = `Great. Should I assign "${pendingAssignment?.taskTitle}" to ${userName}?`;
-      setStatusMessage(question);
-      speak(question);
+      if (status !== "confirming") {
+        setStatus("confirming");
+        const question = `Great. Should I assign "${pendingAssignment?.taskTitle}" to ${userName}?`;
+        setStatusMessage(question);
+        speak(question);
+      }
     }
   };
 };

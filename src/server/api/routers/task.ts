@@ -54,6 +54,7 @@ export const taskRouter = createTRPCRouter({
           ? `\nExisting Tasks: ${input.tasks.join(", ")}` 
           : "";
 
+        console.log("Analyzing transcript:", input.transcript);
         const completion = await groq.chat.completions.create({
           messages: [
             {
@@ -77,10 +78,10 @@ export const taskRouter = createTRPCRouter({
 
               CRITICAL — User Name Matching:
               - The input comes from speech-to-text which often misspells names.
-              - You MUST fuzzy-match the spoken name to the closest Available User below.
+              - Try to match the spoken name to the closest Available User below.
               - Examples: "Sumant" or "Suman" → "Sumanth", "Aliss" → "Alice", "Charley" → "Charlie", "Bob" → "Bob"
-              - The "user" field MUST ALWAYS be an exact name from the Available Users list.
-              - IMPORTANT: If no name is mentioned or no match is possible, use null. NEVER guess.
+              - If a name is mentioned but it's not in the list, return that name as extracted. 
+              - ONLY return null if no person is mentioned at all. NEVER guess.
 
               Context:
               ${usersContext}${tasksContext}
@@ -100,7 +101,9 @@ export const taskRouter = createTRPCRouter({
         });
 
         const content = completion.choices[0]?.message?.content;
+        console.log("Groq AI Raw Output:", content);
         const parsed = JSON.parse(content || "{}");
+        console.log("Parsed AI Result:", JSON.stringify(parsed));
 
         return {
           ...parsed,
@@ -146,13 +149,28 @@ export const taskRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        console.log("Creating task with:", JSON.stringify(input));
+        console.log("Creating task input:", JSON.stringify(input, (key, value) => 
+          key === 'audioData' && typeof value === 'string' 
+            ? `${value.substring(0, 50)}... [Length: ${value.length}]` 
+            : value
+        ));
+
         const data: Record<string, unknown> = {
           title: input.title,
           userId: input.userId,
         };
         if (input.priority) data.priority = input.priority;
-        if (input.dueDate) data.dueDate = new Date(input.dueDate);
+        
+        // Robust Date Parsing
+        if (input.dueDate) {
+          const parsedDate = new Date(input.dueDate);
+          if (!isNaN(parsedDate.getTime())) {
+            data.dueDate = parsedDate;
+          } else {
+            console.warn("Invalid dueDate received:", input.dueDate);
+          }
+        }
+
         if (input.transcript) data.transcript = input.transcript;
         if (input.summary) data.summary = input.summary;
         if (input.suggestions) data.suggestions = input.suggestions;
@@ -161,11 +179,11 @@ export const taskRouter = createTRPCRouter({
         if (input.importance !== undefined) data.importance = input.importance;
 
         const task = await ctx.db.task.create({ data: data as any });
-        console.log("Task created:", task.id);
+        console.log("Task created successfully:", task.id);
         return task;
       } catch (error) {
         console.error("Task create error:", error);
-        throw error;
+        throw new Error(error instanceof Error ? error.message : "Failed to create task in database.");
       }
     }),
 
@@ -196,11 +214,19 @@ export const taskRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.task.update({
-        where: { id: input.taskId },
-        data: { userId: input.userId },
-        include: { assignedTo: true },
-      });
+      try {
+        console.log("Assigning task:", input.taskId, "to user:", input.userId);
+        const task = await ctx.db.task.update({
+          where: { id: input.taskId },
+          data: { userId: input.userId },
+          include: { assignedTo: true },
+        });
+        console.log("Task assigned successfully");
+        return task;
+      } catch (error) {
+        console.error("Task assign error:", error);
+        throw new Error("Failed to assign task.");
+      }
     }),
 
   delete: publicProcedure
